@@ -1,1 +1,76 @@
-<h1>CDN THIS PAGE SERVS NO PURPOSE</h1>
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      // Function to get URL parameters
+function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    var results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+// Function to search and download a file from a GitHub repo
+async function searchAndDownloadFile(filename) {
+    const repoOwner = 'Yazzzz999';
+    const repoName = 'cdn';
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents`;
+
+    try {
+        // Fetch the contents of the repository
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        const files = await response.json();
+
+        // Search for the file
+        const file = files.find(file => file.name === filename);
+        if (!file) {
+            console.error('File not found');
+            return;
+        }
+
+        // Construct the download URL
+        const downloadUrl = `${file.download_url}`;
+        console.log('Download URL:', downloadUrl);
+
+        // Download the file
+        const fileResponse = await fetch(downloadUrl);
+        if (!fileResponse.ok) {
+            throw new Error('Network response was not ok ' + fileResponse.statusText);
+        }
+        const fileBlob = await fileResponse.blob();
+
+        // Create a link element and trigger the download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(fileBlob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        console.log('File downloaded successfully');
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Main function to run when the page loads
+function main() {
+    // Get the filename from the URL parameter
+    const filename = getUrlParameter('file');
+    
+    if (filename) {
+        console.log('Searching for file:', filename);
+        searchAndDownloadFile(filename);
+    } else {
+        console.log('No filename provided in URL');
+    }
+}
+
+// Run the main function when the page loads
+window.onload = main;
+    </script>
+  </body>
+</html>
